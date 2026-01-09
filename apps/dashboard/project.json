@@ -14,14 +14,14 @@
         "index": "apps/dashboard/src/index.html",
         "main": "apps/dashboard/src/main.ts",
         "tsConfig": "apps/dashboard/tsconfig.app.json",
-        "inlineStyleLanguage": "scss",
+        "inlineStyleLanguage": "css",
         "assets": [
           {
             "glob": "**/*",
             "input": "apps/dashboard/public"
           }
         ],
-        "styles": ["apps/dashboard/src/styles.scss"]
+        "styles": ["apps/dashboard/src/styles.css"]
       },
       "configurations": {
         "production": {

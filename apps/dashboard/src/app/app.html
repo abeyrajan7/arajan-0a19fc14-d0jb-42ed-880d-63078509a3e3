@@ -1,2 +1,16 @@
 <app-nx-welcome></app-nx-welcome>
 <router-outlet></router-outlet>
+<ul class="task-list">
+  @for (task of tasks; track task.id) {
+  <li class="task-item">
+    <span>{{ task.title }}</span>
+
+    <div class="task-options">
+      <button (click)="editTask(task)">✏️</button>
+      <button (click)="deleteTask(task.id)">🗑️</button>
+    </div>
+  </li>
+  } @empty {
+  <p>No tasks found for your organization.</p>
+  }
+</ul>

@@ -51,6 +51,11 @@ export class TasksController {
     await this.tasksService.deleteTask(id, req.user);
     return { message: 'Task deleted successfully' };
   }
+  @Put('reorder')
+  @Roles(Role.ADMIN)
+  async reorder(@Body() ids: number[], @Req() req: any) {
+    return this.tasksService.reorderTasks(ids, req.user);
+  }
   @Put(':id')
   @Roles(Role.OWNER, Role.ADMIN) // Viewers cannot edit
   async updateTask(@Param('id') id: number, @Body() dto: any, @Req() req: any) {

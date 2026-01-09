@@ -13,7 +13,7 @@ export class SeedService {
   constructor(
     @InjectRepository(Organization)
     private readonly orgRepo: Repository<Organization>,
-    @InjectRepository(User) private readonly userRepo: Repository<User>
+    @InjectRepository(User) private readonly userRepo: Repository<User>,
   ) {}
 
   async seed() {
@@ -24,7 +24,7 @@ export class SeedService {
 
     // 1. Create Organization 1 (Parent)
     const org1 = await this.orgRepo.save(
-      this.orgRepo.create({ name: 'Turbovets HQ' })
+      this.orgRepo.create({ name: 'Turbovets HQ' }),
     );
 
     // 2. Create Organization 2 (Child of Org 1)
@@ -32,27 +32,15 @@ export class SeedService {
       this.orgRepo.create({
         name: 'Turbovets Branch Alpha',
         parent: org1,
-      })
+      }),
     );
 
     // SeedService.ts snippet
     // Org 1 Users
     await this.userRepo.save([
       this.userRepo.create({
-        email: 'hq_owner@test.com',
-        role: Role.OWNER,
-        passwordHash,
-        organization: org1,
-      }),
-      this.userRepo.create({
         email: 'hq_admin@test.com',
         role: Role.ADMIN,
-        passwordHash,
-        organization: org1,
-      }),
-      this.userRepo.create({
-        email: 'hq_viewer@test.com',
-        role: Role.VIEWER,
         passwordHash,
         organization: org1,
       }),

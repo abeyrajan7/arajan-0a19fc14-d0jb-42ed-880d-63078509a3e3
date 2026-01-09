@@ -1,0 +1,183 @@
+<div class="min-h-screen bg-gray-50">
+  <header class="bg-white border-b p-4">
+    <div class="max-w-6xl mx-auto flex justify-between items-center">
+      <div>
+        <h1 class="text-lg font-semibold">Task Dashboard</h1>
+        <p class="text-xs text-gray-500">Role: {{ role }}</p>
+      </div>
+      <button
+        class="border px-3 py-1 rounded hover:bg-gray-100 transition"
+        (click)="logout()"
+      >
+        Logout
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto p-6 space-y-6">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-xl font-bold">Organization Tasks</h2>
+      <div class="flex space-x-3">
+        @if (isOrderChanged) {
+          <button
+            (click)="saveNewOrder()"
+            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-lg animate-pulse"
+          >
+            💾 Save New Order
+          </button>
+        }
+      </div>
+
+      @if (role === 'OWNER' || role === 'ADMIN') {
+        <button
+          class="bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 transition"
+          (click)="addTask()"
+        >
+          + Add Task
+        </button>
+      }
+    </div>
+
+    <div
+      class="bg-white p-4 rounded-xl border shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4"
+    >
+      <div>
+        <label class="text-xs font-semibold text-gray-500 uppercase"
+          >Search</label
+        >
+        <input
+          [(ngModel)]="searchQuery"
+          (input)="applyFilters()"
+          placeholder="Search by name or desc..."
+          class="w-full border rounded-lg px-3 py-2 mt-1 outline-none focus:ring-1 focus:ring-black"
+        />
+      </div>
+
+      <div>
+        <label class="text-xs font-semibold text-gray-500 uppercase"
+          >Status</label
+        >
+        <select
+          [(ngModel)]="statusFilter"
+          (change)="applyFilters()"
+          class="w-full border rounded-lg px-3 py-2 mt-1 outline-none"
+        >
+          <option value="all">All Tasks</option>
+          <option value="completed">Completed</option>
+          <option value="incomplete">Incomplete</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="text-xs font-semibold text-gray-500 uppercase"
+          >Categorize by User</label
+        >
+        <select
+          [(ngModel)]="categoryFilter"
+          (change)="applyFilters()"
+          class="w-full border rounded-lg px-3 py-2 mt-1 outline-none"
+        >
+          <option value="all">All Users</option>
+          @for (email of uniqueUsers; track email) {
+            <option [value]="email">{{ email }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl border shadow-sm overflow-hidden">
+      @if (loading) {
+        <div class="p-12 text-center text-gray-500 italic">
+          Loading tasks...
+        </div>
+      } @else if (tasks.length === 0) {
+        <div class="p-12 text-center text-gray-500">
+          No tasks found for this organization.
+        </div>
+      } @else {
+        <div cdkDropList (cdkDropListDropped)="drop($event)" class="task-list">
+          @for (task of filteredTasks; track task.id) {
+            <div
+              cdkDrag
+              [cdkDragDisabled]="role !== 'ADMIN' || orgId !== 1"
+              class="flex justify-between items-center border-b p-4 bg-white relative"
+            >
+              <div class="cdk-drag-placeholder" *cdkDragPlaceholder></div>
+
+              <div class="flex items-center z-10">
+                @if (role === 'ADMIN' && orgId === 1) {
+                  <div
+                    class="mr-4 cursor-move text-gray-400 hover:text-gray-600"
+                    cdkDragHandle
+                  >
+                    <svg width="24px" fill="currentColor" viewBox="0 0 24 24">
+                      <path
+                        d="M10 9h4V7h-4v2zm0 4h4v-2h-4v2zm0 4h4v-2h-4v2zm-4-8h4V7H6v2zm0 4h4v-2H6v2zm0 4h4v-2H6v2zm8-8h4V7h-4v2zm0 4h4v-2h-4v2zm0 4h4v-2h-4v2z"
+                      ></path>
+                    </svg>
+                  </div>
+                }
+
+                <div class="flex flex-col">
+                  <span class="font-medium text-gray-900">{{
+                    task.title
+                  }}</span>
+                  <span class="text-xs text-gray-500">
+                    Created by: {{ task.createdBy?.email }}
+                  </span>
+                  <span
+                    class="text-xs font-semibold mt-1"
+                    [class.text-green-600]="task.completed"
+                    [class.text-yellow-600]="!task.completed"
+                  >
+                    {{ task.completed ? 'Completed' : 'Not Completed' }}
+                  </span>
+                </div>
+              </div>
+
+              @if (canManageTask(task)) {
+                <div class="flex items-center space-x-4 z-10">
+                  <button
+                    class="text-blue-600 text-sm font-medium hover:underline"
+                    (click)="editTask(task)"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    class="text-red-600 text-sm font-medium hover:underline"
+                    (click)="deleteTask(task.id)"
+                  >
+                    Delete
+                  </button>
+                </div>
+              }
+            </div>
+          } @empty {
+            <div class="p-12 text-center text-gray-500">
+              No tasks match your current filters.
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    @if (role === 'OWNER' || role === 'ADMIN') {
+      <section class="bg-blue-50 p-4 rounded-xl border border-blue-100 mt-8">
+        <h3 class="text-blue-800 font-semibold mb-1">Organization Controls</h3>
+        <p class="text-blue-700 text-sm">
+          As an <strong>{{ role }}</strong
+          >, you have access to manage tasks within your scope.
+        </p>
+      </section>
+    }
+
+    <app-task-modal
+      [isOpen]="isModalOpen"
+      [mode]="modalMode"
+      [taskData]="selectedTask"
+      (close)="isModalOpen = false"
+      (submit)="handleModalSubmit($event)"
+    >
+    </app-task-modal>
+  </main>
+</div>

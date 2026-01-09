@@ -4,7 +4,7 @@ export class TaskResponseDto {
   title!: string;
   description?: string;
   completed!: boolean;
-
+  organizationId!: number;
   createdBy!: {
     id: number;
     email: string;
