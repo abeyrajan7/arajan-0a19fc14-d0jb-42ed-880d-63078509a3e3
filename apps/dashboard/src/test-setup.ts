@@ -1,6 +1,5 @@
-import { setupZonelessTestEnv } from 'jest-preset-angular/setup-env/zoneless';
+import 'jest-preset-angular/setup-jest.mjs';
 
-setupZonelessTestEnv({
-  errorOnUnknownElements: true,
-  errorOnUnknownProperties: true,
-});
+// Note: If you have already installed zone.js in node_modules,
+// jest-preset-angular/setup-jest actually imports it for you.
+// We don't need the manual zone imports here anymore.

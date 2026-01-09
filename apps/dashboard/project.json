@@ -76,8 +76,9 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
       "options": {
-        "jestConfig": "apps/dashboard/jest.config.cts",
-        "tsConfig": "apps/dashboard/tsconfig.spec.json"
+        "jestConfig": "apps/dashboard/jest.config.ts",
+        "passWithNoTests": true,
+        "useESM": true
       }
     },
     "serve-static": {

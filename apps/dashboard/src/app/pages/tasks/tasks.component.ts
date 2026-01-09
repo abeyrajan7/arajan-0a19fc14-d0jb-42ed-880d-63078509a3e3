@@ -27,6 +27,7 @@ export interface Task {
   title: string;
   description?: string;
   completed: boolean;
+  organizationId: number;
   createdBy: {
     id: number;
     email: string;
@@ -211,7 +212,7 @@ export class TasksComponent implements OnInit {
 
   editTask(task: any) {
     this.modalMode = 'edit';
-    // Clone the task to avoid modifying 
+    // Clone the task to avoid modifying
     // the list directly before saving
     this.selectedTask = { ...task };
     this.isModalOpen = true;
@@ -244,5 +245,12 @@ export class TasksComponent implements OnInit {
           this.fetchTasks();
         });
     }
+  }
+
+  filterTasks() {
+    const query = this.searchQuery.toLowerCase();
+    this.filteredTasks = this.tasks.filter((task) =>
+      task.title.toLowerCase().includes(query),
+    );
   }
 }

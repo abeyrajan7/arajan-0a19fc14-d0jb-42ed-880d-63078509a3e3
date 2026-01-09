@@ -46,3 +46,15 @@ Thumbs.db
 test-output
 
 .angular
+
+# Local Database
+*.sqlite
+*.sqlite-journal
+
+# Secrets
+.env
+
+# Nx and Build outputs
+.nx/cache
+dist/
+tmp/
