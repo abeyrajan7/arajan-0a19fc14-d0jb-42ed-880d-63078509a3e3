@@ -1,104 +1,204 @@
-# New Nx Repository
+1. Prerequisites
+   Node.js: v20 or higher
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+Nx CLI: npm install --global nx
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+2. Environment Setup
+   Create a .env file in the root directory (refer to .env.example for required keys):
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/js?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+Code snippet
 
-## Generate a library
+PORT=3000
+JWT_SECRET=your_secure_random_string
+DATABASE_PATH=database.sqlite
+FRONTEND_URL=http://localhost:4200
 
-```sh
-npx nx g @nx/js:lib packages/pkg1 --publishable --importPath=@my-org/pkg1
-```
+That default Nx README is a great template for generic monorepos, but it doesn't tell anyone what your specific app does! We should keep the helpful Nx commands but move them to the bottom, and put your Task Management System features right at the top.
 
-## Run tasks
+Here is a fresh, professional README.md that combines the best of both worlds.
 
-To build the library use:
+🚀 Task Management System (Nx Monorepo)
+An enterprise-grade Task Management application featuring hierarchical Role-Based Access Control (RBAC) and Organization-based data scoping. Built with Angular 21, NestJS 11, and SQLite.
 
-```sh
-npx nx build pkg1
-```
+🛠 Quick Start
 
-To run any task with Nx use:
+1. Prerequisites
+   Node.js: v20 or higher
 
-```sh
-npx nx <target> <project-name>
-```
+Nx CLI: npm install --global nx
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+2. Environment Setup
+   Create a .env file in the root directory (refer to .env.example for required keys):
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+Code snippet
 
-## Versioning and releasing
+PORT=3000
+JWT_SECRET=your_secure_random_string
+DATABASE_PATH=database.sqlite
+FRONTEND_URL=http://localhost:4200 3. Install & Run
+Bash
 
-To version and release the library use
+# Install dependencies
 
-```
-npx nx release
-```
+npm install --legacy-peer-deps
 
-Pass `--dry-run` to see what would happen without actually releasing the library.
+# Run both Backend and Frontend simultaneously
 
-[Learn more about Nx release &raquo;](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+npx nx run-many -t serve
+Backend API: http://localhost:3000/api
 
-## Keep TypeScript project references up to date
+Frontend Dashboard: http://localhost:4200
 
-Nx automatically updates TypeScript [project references](https://www.typescriptlang.org/docs/handbook/project-references.html) in `tsconfig.json` files to ensure they remain accurate based on your project dependencies (`import` or `require` statements). This sync is automatically done when running tasks such as `build` or `typecheck`, which require updated references to function correctly.
+Role,Scope,Description
+ADMIN (HQ),Global,Full access to all tasks across all organizations. Can reorder global task lists.
+ADMIN (Branch),Branch,Can manage all tasks within their specific organization.
+OWNER,Creator,"Can view all tasks in their org, but can only Edit/Delete their own creations."
+VIEWER,Read-Only,Can only view tasks within their organization.
 
-To manually trigger the process to sync the project graph dependencies information to the TypeScript project references, run the following command:
+Core API Endpoints
+POST /auth/login - Authenticate and receive a JWT.
 
-```sh
-npx nx sync
-```
+GET /tasks - Retrieve tasks (scoped by the user's Organization).
 
-You can enforce that the TypeScript project references are always in the correct state when running in CI by adding a step to your CI job configuration that runs the following command:
+PUT /tasks/reorder - Update task sequence (Restricted to HQ Admin).
 
-```sh
-npx nx sync:check
-```
+DELETE /tasks/:id - Remove a task (requires Ownership or Admin role).
 
-[Learn more about nx sync](https://nx.dev/reference/nx-commands#sync)
+PUT /tasks/reorder - This endpoint is specifically designed for the Drag-and-Drop functionality in the Angular frontend.
+Authorization: Requires a valid JWT with the ADMIN role from the HQ organization.
+Payload: Accepts an array of task IDs in their new desired sequence.
+Logic: The backend performs a bulk update on the position or order column in the SQLite database to persist the UI state.
 
-## Nx Cloud
+Endpoint: GET http://localhost:3000/api/seed
+Result: Creates a global HQ Admin and a Branch Admin with predefined credentials for testing.
 
-Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
+# Testing
 
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+We use Jest with an ESM configuration. To run tests properly in this environment:
 
-### Set up CI (non-Github Actions CI)
+# Run Dashboard Unit Tests
 
-**Note:** This is only required if your CI provider is not GitHub Actions.
+$env:NODE_OPTIONS="--experimental-vm-modules"; npx nx test dashboard
 
-Use the following command to configure a CI workflow for your workspace:
+# Run api Unit Tests
 
-```sh
-npx nx g ci-workflow
-```
+npx nx test api
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+# About this Nx Workspace
 
-## Install Nx Console
+This workspace was generated using Nx. Nx provides a powerful set of tools for managing monorepos.
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+Useful Nx Commands
+Visualize Graph: npx nx graph (See how the API and Dashboard are connected).
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+Generate Code: npx nx generate <plugin>:<generator>
 
-## Useful links
+Run Specific Project: npx nx serve <project-name>
 
-Learn more:
+Project Structure
+apps/api: NestJS application. Contains the JwtStrategy (Auth), TaskService (CRUD & Reorder), and SeedService.
 
-- [Learn more about this workspace setup](https://nx.dev/nx-api/js?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+apps/dashboard: Angular 19+ application. Features a custom TaskComponent with @angular/cdk/drag-drop integration.
 
-And join the Nx community:
+#API Doc
 
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+1. POST /tasks (Create Task)
+   Permission Check: Required ADMIN or OWNER role. VIEWER is blocked.
+
+Request Header: Authorization: Bearer <JWT_TOKEN>
+
+Request Body:
+
+JSON
+
+{
+"title": "Fix Database Connection",
+"description": "Resolve the timeout issue in the dev environment",
+"organizationId": 2
+}
+Response (201 Created):
+
+JSON
+
+{
+"id": 101,
+"title": "Fix Database Connection",
+"organizationId": 2,
+"createdBy": 15,
+"status": "pending",
+"createdAt": "2026-01-09T10:00:00Z"
+}
+
+2. GET /tasks (List Tasks)
+   Scoping: Users only see tasks where task.organizationId === user.organizationId. HQ Admins see all.
+
+Request Header: Authorization: Bearer <JWT_TOKEN>
+
+Response (200 OK):
+
+JSON
+
+[
+{
+"id": 101,
+"title": "Fix Database Connection",
+"status": "pending",
+"organization": { "id": 2, "name": "Branch Office" }
+},
+{
+"id": 102,
+"title": "Update README",
+"status": "completed",
+"organization": { "id": 2, "name": "Branch Office" }
+}
+]
+
+3. PUT /tasks/:id (Edit Task)
+   Permission Check: ADMIN can edit any task in their org. OWNER can only edit tasks where createdBy === userId.
+
+URL: /tasks/101
+
+Request Body:
+
+JSON
+
+{
+"status": "completed"
+}
+Response (200 OK):
+
+JSON
+
+{
+"id": 101,
+"title": "Fix Database Connection",
+"status": "completed",
+"updatedAt": "2026-01-09T11:30:00Z"
+}
+Response (403 Forbidden): Returns if a VIEWER tries to edit or an OWNER tries to edit someone else's task.
+
+4. DELETE /tasks/:id (Delete Task)
+   Permission Check: Restricted to ADMIN or the original OWNER who created the task.
+
+URL: /tasks/101
+
+Response (200 OK):
+
+JSON
+
+{
+"message": "Task 101 successfully deleted"
+}
+
+5. GET /audit-log (View Logs)
+   Permission Check: Only accessible by ADMIN or OWNER.
+
+Request Header: Authorization: Bearer <JWT_TOKEN>
+
+Response (200 OK):
+
+JSON
+
+{
+"message": "Audit log accessible. Check server terminal for real-time logs."
+}

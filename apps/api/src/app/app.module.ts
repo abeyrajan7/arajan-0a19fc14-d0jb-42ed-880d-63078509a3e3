@@ -13,12 +13,21 @@ import { RolesGuard } from './auth/roles.guard';
 import { TasksModule } from './tasks/tasks.module';
 import { join } from 'node:path';
 import { Task } from './entities/task.entity';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+
     TypeOrmModule.forRoot({
       type: 'sqlite',
-      database: join(process.cwd(), 'database.sqlite'),
+      // ✅ Use the env variable with a fallback to stay safe
+      database: join(
+        process.cwd(),
+        process.env['DATABASE_PATH'] || 'database.sqlite',
+      ),
       entities: [User, Organization, Task],
       synchronize: true,
     }),

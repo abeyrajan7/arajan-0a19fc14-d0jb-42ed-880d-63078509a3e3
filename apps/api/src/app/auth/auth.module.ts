@@ -11,8 +11,8 @@ import { JwtStrategy } from './jwt.strategy';
   imports: [
     TypeOrmModule.forFeature([User]),
     JwtModule.register({
-      secret: 'JWT_SECRET',
-      signOptions: { expiresIn: '1h' },
+      secret: process.env['JWT_SECRET'],
+      signOptions: { expiresIn: '1d' },
     }),
   ],
   controllers: [AuthController],
