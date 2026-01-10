@@ -1,4 +1,3 @@
-//seed.entity.ts
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Organization } from '../entities/organization.entity';
@@ -7,7 +6,6 @@ import { User, Role } from '../entities/user.entity';
 
 import * as bcrypt from 'bcrypt';
 
-// seed.service.ts
 @Injectable()
 export class SeedService {
   constructor(

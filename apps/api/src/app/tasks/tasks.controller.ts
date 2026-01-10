@@ -14,7 +14,6 @@ import { Roles } from '../auth/roles.decorator';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { TasksService } from './tasks.service';
 import { Role } from '../entities/user.entity';
-// import type { AuthenticatedRequest } from '../auth/authenticated-request';
 
 @Controller('tasks')
 @UseGuards(JwtAuthGuard)

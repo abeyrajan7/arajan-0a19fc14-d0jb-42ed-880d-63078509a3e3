@@ -1,4 +1,3 @@
-//tasks.service.ts
 import {
   ForbiddenException,
   Injectable,
@@ -149,8 +148,6 @@ export class TasksService {
     });
 
     if (!task) throw new NotFoundException('Task not found');
-
-    // --- 🛡️ HIERARCHICAL PERMISSION CHECK ---
 
     // 1. Is user HQ Admin (Org 1 Admin)?
     const isSuperAdmin =

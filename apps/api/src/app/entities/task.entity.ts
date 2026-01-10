@@ -1,8 +1,6 @@
-//task.entity.ts
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { User } from './user.entity';
 import { Organization } from './organization.entity';
-// import { Organization } from './organization.entity';
 
 export enum TaskStatus {
   OPRN = 'OPEN',

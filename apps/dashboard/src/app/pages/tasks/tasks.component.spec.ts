@@ -53,7 +53,6 @@ describe('TasksComponent Filter Logic', () => {
       { title: 'Task 2', completed: false } as any,
     ];
 
-    // Testing the more advanced applyFilters method you have in your component
     component.statusFilter = 'completed';
     component.applyFilters();
 

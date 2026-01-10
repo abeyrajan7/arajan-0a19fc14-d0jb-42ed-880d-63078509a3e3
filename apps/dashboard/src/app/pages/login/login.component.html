@@ -5,7 +5,6 @@
     </h2>
 
     <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
-      <!-- Email -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
           Email
@@ -18,7 +17,6 @@
         />
       </div>
 
-      <!-- Password -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
           Password
@@ -31,12 +29,10 @@
         />
       </div>
 
-      <!-- Error -->
       <p *ngIf="error" class="text-sm text-red-600">
         {{ error }}
       </p>
 
-      <!-- Button -->
       <button
         type="submit"
         [disabled]="loading"

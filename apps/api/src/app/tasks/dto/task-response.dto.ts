@@ -1,4 +1,3 @@
-// apps/api/src/app/tasks/dto/task-response.dto.ts
 export class TaskResponseDto {
   id!: number;
   title!: string;

@@ -20,8 +20,6 @@ async function seed() {
 
   const passwordHash = await bcrypt.hash('password123', 10);
 
-  /* ------------------ ORGS ------------------ */
-
   const hqOrg = await orgRepo.save(orgRepo.create({ name: 'Turbovets HQ' }));
 
   const branchOrg = await orgRepo.save(
@@ -31,15 +29,13 @@ async function seed() {
     }),
   );
 
-  /* ------------------ USERS ------------------ */
-
   await userRepo.save([
     // SUPER ADMIN (GLOBAL)
     userRepo.create({
       email: 'superadmin@test.com',
       role: Role.ADMIN, // treat as super via code logic
       passwordHash,
-      organization: hqOrg, // placeholder
+      organization: hqOrg,
     }),
 
     // HQ ADMIN
@@ -67,7 +63,7 @@ async function seed() {
     }),
   ]);
 
-  console.log('✅ Database seeded with clean RBAC + org hierarchy');
+  console.log('Database seeded with clean RBAC + org hierarchy');
   process.exit(0);
 }
 

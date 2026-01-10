@@ -23,7 +23,6 @@ import { ConfigModule } from '@nestjs/config';
 
     TypeOrmModule.forRoot({
       type: 'sqlite',
-      // ✅ Use the env variable with a fallback to stay safe
       database: join(
         process.cwd(),
         process.env['DATABASE_PATH'] || 'database.sqlite',

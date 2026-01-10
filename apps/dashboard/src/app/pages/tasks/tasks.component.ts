@@ -70,7 +70,7 @@ export class TasksComponent implements OnInit {
   ) {
     const token = this.auth.getToken();
     const payload = token ? decodeJwt<any>(token) : null;
-    // Correctly matches 'OWNER' from your token
+
     this.role = payload?.role || 'viewer';
     this.role = payload?.role || 'VIEWER';
     this.orgId = payload?.organizationId || 0;
@@ -81,21 +81,16 @@ export class TasksComponent implements OnInit {
     this.fetchTasks();
   }
 
-  // ✅ The fixed Drop Handler
   drop(event: CdkDragDrop<any[]>) {
-    // Only HQ Admin (Org 1) can reorder
     if (this.role === 'ADMIN' && this.orgId === 1) {
-      // 1. Update the UI locally for instant feedback
       moveItemInArray(
         this.filteredTasks,
         event.previousIndex,
         event.currentIndex,
       );
 
-      // 2. Prepare the list of IDs in the new order
       const newOrderIds = this.filteredTasks.map((t) => t.id);
 
-      // 3. Update the backend
       this.http
         .put(`${environment.apiBaseUrl}/tasks/reorder`, newOrderIds)
         .subscribe({
@@ -111,8 +106,6 @@ export class TasksComponent implements OnInit {
   saveNewOrder() {
     const newOrderIds = this.filteredTasks.map((t) => t.id);
 
-    // ✅ WRONG: http.put(`${url}/tasks/${id}`, ids)
-    // ✅ RIGHT: http.put(`${url}/tasks/reorder`, newOrderIds)
     this.http
       .put(`${environment.apiBaseUrl}/tasks/reorder`, newOrderIds)
       .subscribe({
@@ -122,14 +115,12 @@ export class TasksComponent implements OnInit {
         },
         error: (err) => {
           console.error('Reorder error:', err);
-          // If you see 404 here, the backend route @Put('reorder') is missing or mismatched
         },
       });
   }
 
   // Logic to determine if a user can edit/delete a specific task
   // apps/dashboard/src/app/pages/tasks/tasks.component.ts
-
   // Inside your TasksComponent class
   canManageTask(task: any): boolean {
     // 1. Super Admin (Org 1 Admin) can manage everything
@@ -167,14 +158,14 @@ export class TasksComponent implements OnInit {
       },
       error: (err) => {
         console.error('Fetch failed:', err);
-        this.loading = false; // Stop loading even on error
+        this.loading = false;
       },
     });
   }
 
   extractUniqueUsers() {
     const emails = this.tasks.map((t) => t.createdBy?.email).filter((e) => !!e);
-    this.uniqueUsers = [...new Set(emails)]; // Get unique emails for the category filter
+    this.uniqueUsers = [...new Set(emails)]; 
   }
 
   applyFilters() {
@@ -203,7 +194,6 @@ export class TasksComponent implements OnInit {
     this.cdr.markForCheck();
   }
 
-  // Define these functions to clear red lines under (click) events
   addTask() {
     this.modalMode = 'create';
     this.selectedTask = { title: '', description: '', completed: false };
@@ -212,8 +202,6 @@ export class TasksComponent implements OnInit {
 
   editTask(task: any) {
     this.modalMode = 'edit';
-    // Clone the task to avoid modifying
-    // the list directly before saving
     this.selectedTask = { ...task };
     this.isModalOpen = true;
   }

@@ -8,7 +8,7 @@ import { Organization } from '../entities/organization.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Task, User, Organization]), // ✅ ADD User
+    TypeOrmModule.forFeature([Task, User, Organization]), 
   ],
   controllers: [TasksController],
   providers: [TasksService],
