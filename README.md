@@ -1,106 +1,159 @@
-1. Prerequisites
-   Node.js: v20 or higher
+## 🛠 Setup & Installation
 
-Nx CLI: npm install --global nx
+### 1. Prerequisites
 
-2. Environment Setup
-   Create a .env file in the root directory (refer to .env.example for required keys):
+- **Node.js**: v20 or higher
+- **Nx CLI**: Install globally via `npm install --global nx`
 
-Code snippet
+### 2. Environment Setup (.env)
+
+The application requires a `.env` file in the **root directory** to manage secrets and database paths. Create a file named `.env` and add the following:
+
+env
+
+# Server Port
 
 PORT=3000
-JWT_SECRET=your_secure_random_string
+
+# Authentication
+
+# Replace with a long, random string for production
+
+JWT_SECRET=your_secure_random_string_here
+
+# Database Configuration
+
+# Path to your SQLite file relative to the project root
+
 DATABASE_PATH=database.sqlite
+
+# Frontend URL (CORS)
+
+# The URL where your Angular app is running
+
 FRONTEND_URL=http://localhost:4200
 
-That default Nx README is a great template for generic monorepos, but it doesn't tell anyone what your specific app does! We should keep the helpful Nx commands but move them to the bottom, and put your Task Management System features right at the top.
+3. Install Dependencies
+   Run the following command in the root folder to install all necessary packages for both frontend and backend:
 
-Here is a fresh, professional README.md that combines the best of both worlds.
-
-🚀 Task Management System (Nx Monorepo)
-An enterprise-grade Task Management application featuring hierarchical Role-Based Access Control (RBAC) and Organization-based data scoping. Built with Angular 21, NestJS 11, and SQLite.
-
-🛠 Quick Start
-
-1. Prerequisites
-   Node.js: v20 or higher
-
-Nx CLI: npm install --global nx
-
-2. Environment Setup
-   Create a .env file in the root directory (refer to .env.example for required keys):
-
-Code snippet
-
-PORT=3000
-JWT_SECRET=your_secure_random_string
-DATABASE_PATH=database.sqlite
-FRONTEND_URL=http://localhost:4200 3. Install & Run
 Bash
 
-# Install dependencies
+npm install --legacy-peer-deps 4. Running the Applications
+You can run both the NestJS API and the Angular Dashboard simultaneously using Nx:
 
-npm install --legacy-peer-deps
+Bash
 
-# Run both Backend and Frontend simultaneously
+# Run both apps together
 
 npx nx run-many -t serve
+
+# Or run them individually in separate terminals
+
+npx nx serve api
+npx nx serve dashboard
 Backend API: http://localhost:3000/api
 
 Frontend Dashboard: http://localhost:4200
 
-Role,Scope,Description
-ADMIN (HQ),Global,Full access to all tasks across all organizations. Can reorder global task lists.
-ADMIN (Branch),Branch,Can manage all tasks within their specific organization.
-OWNER,Creator,"Can view all tasks in their org, but can only Edit/Delete their own creations."
-VIEWER,Read-Only,Can only view tasks within their organization.
+## 🏗 Architecture Overview
 
-Core API Endpoints
-POST /auth/login - Authenticate and receive a JWT.
+### 1. Nx Monorepo Layout & Rationale
 
-GET /tasks - Retrieve tasks (scoped by the user's Organization).
+This project utilizes an **Nx Monorepo** architecture. Instead of having separate repositories for the Frontend and Backend, both live in a single workspace.
 
-PUT /tasks/reorder - Update task sequence (Restricted to HQ Admin).
+**Rationale:**
 
-DELETE /tasks/:id - Remove a task (requires Ownership or Admin role).
+- **Shared Type Safety**: We can share TypeScript interfaces between the API and the Dashboard, ensuring that if a "Task" object changes on the backend, the frontend knows immediately.
+- **Atomic Commits**: Features that require both backend and frontend changes can be committed and reviewed in a single Pull Request.
+- **Simplified Tooling**: One `package.json`, one set of ESLint rules, and one testing framework across the entire stack.
 
-PUT /tasks/reorder - This endpoint is specifically designed for the Drag-and-Drop functionality in the Angular frontend.
-Authorization: Requires a valid JWT with the ADMIN role from the HQ organization.
-Payload: Accepts an array of task IDs in their new desired sequence.
-Logic: The backend performs a bulk update on the position or order column in the SQLite database to persist the UI state.
+### 2. Workspace Structure
 
-Endpoint: GET http://localhost:3000/api/seed
-Result: Creates a global HQ Admin and a Branch Admin with predefined credentials for testing.
+- **`apps/`**: Contains the entry points for our applications.
+  - `api/`: The NestJS server (Backend).
+  - `dashboard/`: The Angular application (Frontend).
+- **`libs/`**: (If applicable) This is where shared logic, UI components, and data-access services reside.
 
-# Testing
+### 3. Identifying Shared Libraries & Modules
 
-We use Jest with an ESM configuration. To run tests properly in this environment:
+To understand how the modules and libraries interact, you can use the built-in **Nx Graph**. This tool visually maps every dependency in the workspace.
 
-# Run Dashboard Unit Tests
+**To view the architecture graph, run:**
 
-$env:NODE_OPTIONS="--experimental-vm-modules"; npx nx test dashboard
+````bash
+npx nx graph
 
-# Run api Unit Tests
 
-npx nx test api
 
-# About this Nx Workspace
+## 📊 Data Model & Schema
 
-This workspace was generated using Nx. Nx provides a powerful set of tools for managing monorepos.
+The application uses a relational data model managed via **TypeORM**. The schema is designed to enforce strict data isolation between different organizations (multi-tenancy) while maintaining a clear audit trail of task ownership.
 
-Useful Nx Commands
-Visualize Graph: npx nx graph (See how the API and Dashboard are connected).
+### 1. Entity Relationship Diagram (ERD)
 
-Generate Code: npx nx generate <plugin>:<generator>
 
-Run Specific Project: npx nx serve <project-name>
 
-Project Structure
-apps/api: NestJS application. Contains the JwtStrategy (Auth), TaskService (CRUD & Reorder), and SeedService.
+Image Link:
+https://drive.google.com/file/d/1RlNzh7KDcY6UFs7ARpQ3rZ_-Wi8tG_1g/view?usp=sharing
 
-apps/dashboard: Angular 19+ application. Features a custom TaskComponent with @angular/cdk/drag-drop integration.
 
-#API Doc
+2. Schema Breakdown
+Organization: The top-level container.
+
+Key Fields: id, name.
+
+Rationale: All data is scoped to an organizationId. One organization represents the HeadQuarters (HQ), while others represent branch offices.
+
+User: Represents an employee within an organization.
+
+Key Fields: id, email, role (ADMIN, OWNER, VIEWER), organizationId.
+
+Rationale: A user belongs to exactly one organization. Their role determines what they can do with tasks inside that organization.
+
+Task: The core unit of work.
+
+Key Fields: id, title, description, status, position, organizationId, createdBy.
+
+Rationale: Every task is linked to an organization. The position field is used for the Drag-and-Drop reordering logic.
+
+Audit Log: Tracks system-wide actions.
+
+Key Fields: id, action, performedBy, timestamp.
+
+
+## 🔐 Access Control Implementation
+
+The system implements a hierarchical **Role-Based Access Control (RBAC)** model combined with **Organization-based scoping**. This ensures that users only see what they are supposed to see and only perform actions they are authorized to do.
+
+### 1. The Role Hierarchy
+Permissions are determined by a combination of the user's `Role` and their `Organization`.
+
+| Role | Scope | Reordering | Permissions |
+| :--- | :--- | :--- | :--- |
+| **ADMIN (HQ)** | **Global** | ✅ Yes | Full access to view, edit, delete, and reorder tasks across **all** organizations. |
+| **ADMIN (Branch)**| **Branch** | ❌ No | Full management (CRUD) of all tasks within their **specific** organization. |
+| **OWNER** | **Individual** | ❌ No | Can view all tasks in their org, but can only **Edit/Delete** tasks they personally created. |
+| **VIEWER** | **Read-Only** | ❌ No | Can view tasks within their organization but cannot create, edit, or delete anything. |
+
+### 2. JWT & Auth Integration
+Authentication is handled via **JWT (JSON Web Tokens)**. When a user logs in, the backend issues a signed token containing their identity and permissions.
+
+**The Auth Flow:**
+1. **Extraction**: The `JwtStrategy` extracts the token from the `Authorization: Bearer <token>` header.
+2. **Validation**: The backend verifies the token using the `JWT_SECRET` defined in the `.env` file.
+3. **Payload Injection**: Once validated, the user's `userId`, `role`, and `organizationId` are attached to the Request object (`req.user`).
+4. **Guards**: Custom NestJS Guards compare the `req.user` data against the requested resource. For example:
+   * *Is the user an ADMIN?*
+   * *Does the Task's `organizationId` match the User's `organizationId`?*
+
+### 3. Data Scoping Logic
+Access control isn't just about blocking buttons; it's built into the database queries.
+* **Filtering**: When fetching tasks, the `TaskService` automatically appends a filter: `WHERE task.organizationId = :userOrgId`.
+* **Ownership Check**: For sensitive operations (like Delete), the service checks:
+  `if (user.role !== 'ADMIN' && task.createdBy !== user.id) throw ForbiddenException();`
+
+
+### API Doc
 
 1. POST /tasks (Create Task)
    Permission Check: Required ADMIN or OWNER role. VIEWER is blocked.
@@ -202,3 +255,32 @@ JSON
 {
 "message": "Audit log accessible. Check server terminal for real-time logs."
 }
+````
+
+
+## Future Considerations
+
+To evolve this project from a functional prototype to a production-ready enterprise solution, the following enhancements are considered:
+
+### 1. Dynamic Permissions & Delegation
+* **Super Admin Control Panel**: A dedicated interface for the HQ Admin to dynamically adjust permissions for specific roles without redeploying code.
+* **Granular Role Delegation**: Enabling Admins to delegate specific tasks or "Editor" rights to a Viewer for a limited time.
+* **Invite System**: Implementing a secure email invitation flow for onboarding new organization members.
+
+### 2. Production-Ready Security
+* **JWT Refresh Tokens**: Moving to a dual-token system (short-lived Access Tokens and long-lived Refresh Tokens) to improve session security.
+* **CSRF & XSS Protection**: Implementing `csurf` middleware and moving JWT storage from `localStorage` to `HttpOnly` cookies.
+* **RBAC Caching**: Integrating **Redis** to cache user roles and organization scoping data, reducing the number of database lookups per request.
+
+
+
+### 3. Scaling & Performance
+* **Efficient Permission Checks**: Implementing **Bitmask-based permissions** or an **Access Control List (ACL)** for faster evaluation as the number of users grows.
+* **Database Migrations**: Moving away from TypeORM's `synchronize: true` in favor of a managed migration strategy to ensure data integrity during schema updates.
+* **Audit Trail Expansion**: Transitioning the simple audit log into a full-scale event-streaming service (using Kafka or RabbitMQ) for high-frequency logging.
+
+
+
+### 4. Advanced Frontend Features
+* **Real-time Updates**: Integrating **WebSockets (Socket.io)** so that when an Admin reorders tasks, the change is reflected instantly on all organization members' screens.
+* **Offline Support**: Implementing a Service Worker to allow users to view tasks even when their internet connection is lost.
