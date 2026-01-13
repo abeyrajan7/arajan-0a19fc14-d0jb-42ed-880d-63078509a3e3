@@ -1,61 +1,102 @@
+# Multi-Tenant Task Management System
+
+A full-stack monorepo application featuring a NestJS API and an Angular Dashboard, managed with Nx.
+
+---
+
 ## 🛠 Setup & Installation
 
 ### 1. Prerequisites
 
 - **Node.js**: v20 or higher
-- **Nx CLI**: Install globally via `npm install --global nx`
+- **Nx CLI**: `npm install --global nx`
 
 ### 2. Environment Setup (.env)
 
-The application requires a `.env` file in the **root directory** to manage secrets and database paths. Create a file named `.env` and add the following:
+The application requires a `.env` file in the **root directory**. To avoid Windows hidden extension issues and ensure the file is created correctly, run this PowerShell command in your terminal:
 
-env
+`````powershell
+# Create the file in the project root
+New-Item .env -ItemType File
 
-# Server Port
-
-PORT=3000
-
-# Authentication
-
-# Replace with a long, random string for production
-
-JWT_SECRET=your_secure_random_string_here
-
-# Database Configuration
-
-# Path to your SQLite file relative to the project root
-
-DATABASE_PATH=database.sqlite
-
-# Frontend URL (CORS)
-
-# The URL where your Angular app is running
-
-FRONTEND_URL=http://localhost:4200
+# Add the required variables
+Add-Content .env "PORT=3000"
+Add-Content .env "JWT_SECRET=your_secure_random_string_here"
+Add-Content .env "DATABASE_PATH=database.sqlite"
+Add-Content .env "FRONTEND_URL=http://localhost:4200"
 
 3. Install Dependencies
-   Run the following command in the root folder to install all necessary packages for both frontend and backend:
+You must use the legacy peer-deps flag to ensure compatible resolution between Angular and Nx versions
+npm install --legacy-peer-deps
 
-Bash
+3.1: Install Missing Type Definitions
+TypeScript requires these to understand the passport-jwt library. If these aren't in your package.json, the build will fail.
+npm install --save-dev @types/passport-jwt @types/passport --legacy-peer-deps
 
-npm install --legacy-peer-deps 4. Running the Applications
-You can run both the NestJS API and the Angular Dashboard simultaneously using Nx:
-
-Bash
-
+4: Running the Applications
 # Run both apps together
-
 npx nx run-many -t serve
 
-# Or run them individually in separate terminals
-
+# Or run individually in separate terminals
 npx nx serve api
 npx nx serve dashboard
-Backend API: http://localhost:3000/api
 
-Frontend Dashboard: http://localhost:4200
+🏗 Architecture Overview
+1. Nx Monorepo Rationale
+This project uses a monorepo structure to ensure Shared Type Safety.
 
-## 🏗 Architecture Overview
+Atomic Changes: Backend schema updates and Frontend UI changes happen in a single commit.
+
+Dependency Graph: View the workspace architecture by running npx nx graph.
+
+2. Robust Initialization
+To prevent "Cold Start" errors in fresh clones, the backend implements:
+
+Sequential Boot: dotenv is initialized at the absolute top of main.ts using absolute path resolution to ensure the environment is loaded before the NestJS factory starts.
+
+Async Config: The AuthModule utilizes registerAsync to ensure the ConfigService is fully ready before the JWT strategy initializes.
+
+
+🔐 Access Control & Security
+1. Role-Based Access Control (RBAC)
+Permissions are enforced through JWT payloads and database-level scoping.
+
+Role              Scope             Reordering,Permissions
+ADMIN (HQ)        Global            ✅ Yes,Full access to all organizations.
+ADMIN (Branch)    Branch            ❌ No,Management of tasks within their specific org.
+OWNER             Individual        ❌ No,Can only Edit/Delete tasks they personally created.
+VIEWER            Read-Only         ❌ No,Read-only access to organization tasks.
+
+
+2. Multi-Tenancy Logic
+Data isolation is maintained by injecting the organizationId from the JWT into every database query.
+
+Query Filter: WHERE task.organizationId = :userOrgId
+
+Ownership Validation: Custom Guards verify createdBy fields for sensitive actions like PUT or DELETE.
+
+
+📊 Data Model
+The system uses a relational model managed via TypeORM with an SQLite provider.
+
+Entity Relationship Overview:
+
+Organization: Top-level container for all data.
+
+User: Belongs to one Org; carries a specific Role.
+
+Task: Linked to an Org and an Owner (User).
+
+
+
+If you encounter a 404 Not Found or 500 Secret Missing error after cloning:
+
+Reset Nx: Run npx nx reset to clear stale build artifacts and stop the daemon.
+
+Kill Processes: Ensure no ghost Node processes are locking the database: taskkill /F /IM node.exe.
+
+Verify .env: Ensure the .env is in the root folder of the project (not inside apps/api/).
+
 
 ### 1. Nx Monorepo Layout & Rationale
 
@@ -255,32 +296,31 @@ JSON
 {
 "message": "Audit log accessible. Check server terminal for real-time logs."
 }
-````
-
+`````
 
 ## Future Considerations
 
 To evolve this project from a functional prototype to a production-ready enterprise solution, the following enhancements are considered:
 
 ### 1. Dynamic Permissions & Delegation
-* **Super Admin Control Panel**: A dedicated interface for the HQ Admin to dynamically adjust permissions for specific roles without redeploying code.
-* **Granular Role Delegation**: Enabling Admins to delegate specific tasks or "Editor" rights to a Viewer for a limited time.
-* **Invite System**: Implementing a secure email invitation flow for onboarding new organization members.
+
+- **Super Admin Control Panel**: A dedicated interface for the HQ Admin to dynamically adjust permissions for specific roles without redeploying code.
+- **Granular Role Delegation**: Enabling Admins to delegate specific tasks or "Editor" rights to a Viewer for a limited time.
+- **Invite System**: Implementing a secure email invitation flow for onboarding new organization members.
 
 ### 2. Production-Ready Security
-* **JWT Refresh Tokens**: Moving to a dual-token system (short-lived Access Tokens and long-lived Refresh Tokens) to improve session security.
-* **CSRF & XSS Protection**: Implementing `csurf` middleware and moving JWT storage from `localStorage` to `HttpOnly` cookies.
-* **RBAC Caching**: Integrating **Redis** to cache user roles and organization scoping data, reducing the number of database lookups per request.
 
-
+- **JWT Refresh Tokens**: Moving to a dual-token system (short-lived Access Tokens and long-lived Refresh Tokens) to improve session security.
+- **CSRF & XSS Protection**: Implementing `csurf` middleware and moving JWT storage from `localStorage` to `HttpOnly` cookies.
+- **RBAC Caching**: Integrating **Redis** to cache user roles and organization scoping data, reducing the number of database lookups per request.
 
 ### 3. Scaling & Performance
-* **Efficient Permission Checks**: Implementing **Bitmask-based permissions** or an **Access Control List (ACL)** for faster evaluation as the number of users grows.
-* **Database Migrations**: Moving away from TypeORM's `synchronize: true` in favor of a managed migration strategy to ensure data integrity during schema updates.
-* **Audit Trail Expansion**: Transitioning the simple audit log into a full-scale event-streaming service (using Kafka or RabbitMQ) for high-frequency logging.
 
-
+- **Efficient Permission Checks**: Implementing **Bitmask-based permissions** or an **Access Control List (ACL)** for faster evaluation as the number of users grows.
+- **Database Migrations**: Moving away from TypeORM's `synchronize: true` in favor of a managed migration strategy to ensure data integrity during schema updates.
+- **Audit Trail Expansion**: Transitioning the simple audit log into a full-scale event-streaming service (using Kafka or RabbitMQ) for high-frequency logging.
 
 ### 4. Advanced Frontend Features
-* **Real-time Updates**: Integrating **WebSockets (Socket.io)** so that when an Admin reorders tasks, the change is reflected instantly on all organization members' screens.
-* **Offline Support**: Implementing a Service Worker to allow users to view tasks even when their internet connection is lost.
+
+- **Real-time Updates**: Integrating **WebSockets (Socket.io)** so that when an Admin reorders tasks, the change is reflected instantly on all organization members' screens.
+- **Offline Support**: Implementing a Service Worker to allow users to view tasks even when their internet connection is lost.
